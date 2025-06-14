@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Reader Backend API Dokumentatsiyasi</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            background: #fff;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #007acc;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #007acc;
+            font-size: 2.5em;
+            margin: 0;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.2em;
+            margin: 10px 0 0 0;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            page-break-inside: avoid;
+        }
+        
+        .section h2 {
+            color: #007acc;
+            border-left: 4px solid #007acc;
+            padding-left: 15px;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+        }
+        
+        .endpoint {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            page-break-inside: avoid;
+        }
+        
+        .endpoint h3 {
+            color: #28a745;
+            margin-top: 0;
+            font-size: 1.4em;
+        }
+        
+        .method {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-right: 10px;
+        }
+        
+        .method.get { background: #28a745; color: white; }
+        .method.post { background: #007bff; color: white; }
+        .method.put { background: #ffc107; color: black; }
+        .method.delete { background: #dc3545; color: white; }
+        
+        .url {
+            font-family: 'Courier New', monospace;
+            background: #e9ecef;
+            padding: 8px 12px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        
+        .json {
+            background: #1a202c;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        .table th,
+        .table td {
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .table th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .status-code {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 0.85em;
+        }
+        
+        .status-200 { background: #d4edda; color: #155724; }
+        .status-201 { background: #d1ecf1; color: #0c5460; }
+        .status-400 { background: #f8d7da; color: #721c24; }
+        .status-404 { background: #f8d7da; color: #721c24; }
+        .status-500 { background: #f8d7da; color: #721c24; }
+        
+        .note {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .note h4 {
+            color: #856404;
+            margin-top: 0;
+        }
+        
+        .toc {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .toc h3 {
+            color: #007acc;
+            margin-top: 0;
+        }
+        
+        .toc ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .toc li {
+            padding: 5px 0;
+            border-bottom: 1px dotted #ccc;
+        }
+        
+        .toc a {
+            text-decoration: none;
+            color: #007acc;
+        }
+        
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        
+        @media print {
+            body { font-size: 12px; }
+            .header h1 { font-size: 2em; }
+            .section h2 { font-size: 1.5em; }
+            .endpoint h3 { font-size: 1.2em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>PDF Reader Backend API</h1>
+        <p>To'liq API Dokumentatsiyasi</p>
+        <p><strong>Versiya:</strong> 1.0 | <strong>Sana:</strong> 2025-06-12</p>
+    </div>
+
+    <div class="toc">
+        <h3>📋 Mundarija</h3>
+        <ul>
+            <li><a href="#overview">1. Umumiy ma'lumot</a></li>
+            <li><a href="#endpoints">2. API Endpoint-lar</a></li>
+            <li><a href="#data-structures">3. Ma'lumotlar strukturasi</a></li>
+            <li><a href="#error-codes">4. Xatolik kodlari</a></li>
+            <li><a href="#examples">5. Misollar</a></li>
+            <li><a href="#cors">6. CORS sozlamalari</a></li>
+        </ul>
+    </div>
+
+    <div class="section" id="overview">
+        <h2>1. 🎯 Umumiy ma'lumot</h2>
+        <p>Bu API PDF Reader ilovasi uchun backend xizmatlarini ta'minlaydi. API RESTful arxitekturasiga asoslangan va JSON formatida ma'lumot almashadi.</p>
+        
+        <div class="note">
+            <h4>📌 Muhim eslatmalar:</h4>
+            <ul>
+                <li>Barcha so'rovlar HTTP/HTTPS orqali amalga oshiriladi</li>
+                <li>Ma'lumotlar JSON formatida uzatiladi</li>
+                <li>PDF fayllar Base64 formatida kodlanadi</li>
+                <li>Katta fayllar chunk-larga bo'linadi (10MB+)</li>
+                <li>CORS sozlamalari barcha origin-larga ruxsat beradi</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section" id="endpoints">
+        <h2>2. 🔗 API Endpoint-lar</h2>
+
+        <div class="endpoint">
+            <h3>
+                <span class="method get">GET</span>
+                <span class="url">/health</span>
+            </h3>
+            <p><strong>Maqsad:</strong> Backend server holatini tekshirish</p>
+            
+            <h4>📤 So'rov:</h4>
+            <div class="code-block">
+GET /health
+Host: your-server.com
+            </div>
+            
+            <h4>📥 Javob:</h4>
+            <div class="code-block json">
+{
+  "status": "ok"
+}
+            </div>
+            
+            <h4>📊 Status kodlar:</h4>
+            <span class="status-code status-200">200 OK</span>
+        </div>
+
+        <div class="endpoint">
+            <h3>
+                <span class="method get">GET</span>
+                <span class="url">/publications</span>
+            </h3>
+            <p><strong>Maqsad:</strong> Barcha nashrlarni ro'yxatini olish</p>
+            
+            <h4>📤 So'rov:</h4>
+            <div class="code-block">
+            </div>
+            
+            <h4>📥 Javob:</h4>
+            <div class="code-block json">
+
+            </div>
+            
+            <h4>📊 Status kodlar:</h4>
+            <span class="status-code status-200">200 OK</span>
+        </div>
+
+        <div class="endpoint">
+            <h3>
+                <span class="method get">GET</span>
+                <span class="url">/publications/{id}</span>
+            </h3>
+            <p><strong>Maqsad:</strong> ID bo'yicha bitta nashrni olish</p>
+            
+            <h4>📤 So'rov:</h4>
+            <div class="code-block">
+GET /publications/pdf_1234567890_abc123
+Host: your-server.com
+            </div>
+            
+            <h4>📥 Muvaffaqiyatli javob:</h4>
+            <div class="code-block json">
+{
+  "id": "pdf_1234567890_abc123",
+  "title": "PDF Nashr - 12/6/2025",
+  "published_at": "2025-06-12T10:25:05Z",
+  "pdf_files": { ... },
+  "custom_outlines": { ... },
+  "view_count": 15
+}
+            </div>
+            
+            <h4>📥 Xatolik javob:</h4>
+            <div class="code-block json">
+{
+  "detail": "Publication not found"
+}
+            </div>
+            
+            <h4>📊 Status kodlar:</h4>
+            <span class="status-code status-200">200 OK</span>
+            <span class="status-code status-404">404 Not Found</span>
+        </div>
+
+        <div class="endpoint">
+            <h3>
+                <span class="method post">POST</span>
+                <span class="url">/publications</span>
+            </h3>
+            <p><strong>Maqsad:</strong> Yangi nashr yaratish</p>
+            
+            <h4>📤 So'rov:</h4>
+            <div class="code-block">
+POST /publications
+Host: your-server.com
+Content-Type: multipart/form-data
+
+FormData:
+- title: "PDF Nashr - 12/6/2025"
+- pdf_files: [File1, File2, File3]
+- languages: ["uz", "ru", "en"]
+- custom_outlines: '{"uz": [{"title": "1-bob", "page": 1}]}'
+            </div>
+            
+            <h4>📥 Javob:</h4>
+            <div class="code-block json">
+{
+  "id": "pdf_1234567890_abc123",
+  "title": "PDF Nashr - 12/6/2025",
+  "published_at": "2025-06-12T10:25:05Z",
+  "pdf_files": { ... },
+  "custom_outlines": { ... },
+  "view_count": 0
+}
+            </div>
+            
+            <h4>📊 Status kodlar:</h4>
+            <span class="status-code status-201">201 Created</span>
+            <span class="status-code status-400">400 Bad Request</span>
+        </div>
+
+        <div class="endpoint">
+            <h3>
+                <span class="method put">PUT</span>
+                <span class="url">/publications/{id}/increment-view</span>
+            </h3>
+            <p><strong>Maqsad:</strong> Ko'rishlar sonini oshirish</p>
+            
+            <h4>📤 So'rov:</h4>
+            <div class="code-block">
+PUT /publications/pdf_1234567890_abc123/increment-view
+Host: your-server.com
+            </div>
+            
+            <h4>📥 Javob:</h4>
+            <div class="code-block json">
+{
+  "id": "pdf_1234567890_abc123",
+  "view_count": 16
+}
+            </div>
+            
+            <h4>📊 Status kodlar:</h4>
+            <span class="status-code status-200">200 OK</span>
+            <span class="status-code status-404">404 Not Found</span>
+        </div>
+
+        <div class="endpoint">
+            <h3>
+                <span class="method delete">DELETE</span>
+                <span class="url">/publications/{id}</span>
+            </h3>
+            <p><strong>Maqsad:</strong> Nashrni o'chirish</p>
+            
+            <h4>📤 So'rov:</h4>
+            <div class="code-block">
+DELETE /publications/pdf_1234567890_abc123
+Host: your-server.com
+            </div>
+            
+            <h4>📥 Javob:</h4>
+            <div class="code-block json">
+{
+  "message": "Publication deleted successfully"
+}
+            </div>
+            
+            <h4>📊 Status kodlar:</h4>
+            <span class="status-code status-200">200 OK</span>
+            <span class="status-code status-404">404 Not Found</span>
+        </div>
+    </div>
+
+    <div class="section" id="data-structures">
+        <h2>3. 📊 Ma'lumotlar strukturasi</h2>
+
+        <h3>📄 PDF File Object</h3>
+        <p><strong>Kichik fayllar uchun (10MB gacha):</strong></p>
+        <div class="code-block json">
+{
+  "name": "document.pdf",
+  "type": "application/pdf",
+  "size": 1048576,
+  "isChunked": false,
+  "data": "data:application/pdf;base64,JVBERi0xLjQ..."
+}
+        </div>
+
+        <p><strong>Katta fayllar uchun (10MB+):</strong></p>
+        <div class="code-block json">
+{
+  "name": "large_document.pdf",
+  "type": "application/pdf",
+  "size": 15728640,
+  "isChunked": true,
+  "chunks": [
+    "data:application/pdf;base64,JVBERi0xLjQ...",
+    "data:application/pdf;base64,chunk2_data...",
+    "data:application/pdf;base64,chunk3_data..."
+  ],
+  "totalChunks": 3
+}
+        </div>
+
+        <h3>📑 Outline Item</h3>
+        <div class="code-block json">
+{
+  "title": "Bob nomi",
+  "page": 5,
+  "items": [
+    {
+      "title": "Kichik bob",
+      "page": 7,
+      "items": [
+        {
+          "title": "Yana kichikroq bob",
+          "page": 9,
+          "items": []
+        }
+      ]
+    }
+  ]
+}
+        </div>
+
+        <h3>📋 Publication Object</h3>
+        <div class="code-block json">
+{
+  "id": "pdf_1234567890_abc123",
+  "title": "PDF Nashr - 12/6/2025",
+  "published_at": "2025-06-12T10:25:05Z",
+  "pdf_files": {
+    "uz": { /* PDF File Object */ },
+    "ru": { /* PDF File Object */ },
+    "en": { /* PDF File Object */ }
+  },
+  "custom_outlines": {
+    "uz": [ /* Outline Item array */ ],
+    "ru": [ /* Outline Item array */ ],
+    "en": [ /* Outline Item array */ ]
+  },
+  "view_count": 15
+}
+        </div>
+    </div>
+
+    <div class="section" id="error-codes">
+        <h2>4. ⚠️ Xatolik kodlari</h2>
+        
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Kod</th>
+                    <th>Nomi</th>
+                    <th>Tavsif</th>
+                    <th>Misol</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="status-code status-200">200</span></td>
+                    <td>OK</td>
+                    <td>So'rov muvaffaqiyatli bajarildi</td>
+                    <td>Ma'lumotlar muvaffaqiyatli olindi</td>
+                </tr>
+                <tr>
+                    <td><span class="status-code status-201">201</span></td>
+                    <td>Created</td>
+                    <td>Yangi resurs yaratildi</td>
+                    <td>Yangi nashr yaratildi</td>
+                </tr>
+                <tr>
+                    <td><span class="status-code status-400">400</span></td>
+                    <td>Bad Request</td>
+                    <td>Noto'g'ri so'rov formati</td>
+                    <td>Majburiy maydon kiritilmagan</td>
+                </tr>
+                <tr>
+                    <td><span class="status-code status-404">404</span></td>
+                    <td>Not Found</td>
+                    <td>Resurs topilmadi</td>
+                    <td>Berilgan ID bo'yicha nashr yo'q</td>
+                </tr>
+                <tr>
+                    <td><span class="status-code status-500">500</span></td>
+                    <td>Internal Server Error</td>
+                    <td>Server ichki xatoligi</td>
+                    <td>Ma'lumotlar bazasi bilan bog'lanish xatoligi</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section" id="examples">
+        <h2>5. 💡 Misollar</h2>
+
+        <h3>JavaScript (Fetch API)</h3>
+        <div class="code-block">
+// Barcha nashrlarni olish
+const response = await fetch('http://your-server.com/publications');
+const publications = await response.json();
+
+// Yangi nashr yaratish
+const formData = new FormData();
+formData.append('title', 'Yangi PDF Nashr');
+formData.append('pdf_files', pdfFile);
+formData.append('languages', 'uz');
+formData.append('custom_outlines', JSON.stringify({
+  uz: [{ title: "1-bob", page: 1, items: [] }]
+}));
+
+const createResponse = await fetch('http://your-server.com/publications', {
+  method: 'POST',
+  body: formData
+});
+
+// Ko'rishlar sonini oshirish
+await fetch(`http://your-server.com/publications/${id}/increment-view`, {
+  method: 'PUT'
+});
+        </div>
+
+        <h3>cURL</h3>
+        <div class="code-block">
+# Barcha nashrlarni olish
+curl -X GET http://your-server.com/publications
+
+# Bitta nashrni olish
+curl -X GET http://your-server.com/publications/pdf_1234567890_abc123
+
+# Ko'rishlar sonini oshirish
+curl -X PUT http://your-server.com/publications/pdf_1234567890_abc123/increment-view
+
+# Nashrni o'chirish
+curl -X DELETE http://your-server.com/publications/pdf_1234567890_abc123
+        </div>
+
+        <h3>Python (requests)</h3>
+        <div class="code-block">
+import requests
+
+# Barcha nashrlarni olish
+response = requests.get('http://your-server.com/publications')
+publications = response.json()
+
+# Yangi nashr yaratish
+files = {'pdf_files': open('document.pdf', 'rb')}
+data = {
+    'title': 'Yangi PDF Nashr',
+    'languages': 'uz',
+    'custom_outlines': '{"uz": [{"title": "1-bob", "page": 1, "items": []}]}'
+}
+response = requests.post('http://your-server.com/publications', 
+                        files=files, data=data)
+        </div>
+    </div>
+
+    <div class="section" id="cors">
+        <h2>6. 🌐 CORS Sozlamalari</h2>
+        
+        <p>Backend server quyidagi CORS sozlamalarini qo'llab-quvvatlashi kerak:</p>
+        
+        <div class="code-block">
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Access-Control-Max-Age: 86400
+        </div>
+
+        <div class="note">
+            <h4>🔒 Xavfsizlik eslatmasi:</h4>
+            <p>Production muhitida <code>Access-Control-Allow-Origin: *</code> o'rniga aniq domenlarni ko'rsating:</p>
+            <div class="code-block">
+Access-Control-Allow-Origin: https://your-frontend-domain.com
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>📞 Qo'llab-quvvatlash</h2>
+        <p>Agar API bilan bog'liq savollaringiz bo'lsa, quyidagi ma'lumotlarni taqdim eting:</p>
+        <ul>
+            <li>So'rov URL-i va method-i</li>
+            <li>Yuborilgan ma'lumotlar</li>
+            <li>Olingan javob va xatolik kodi</li>
+            <li>Browser console loglar</li>
+        </ul>
+    </div>
+
+    <div style="text-align: center; margin-top: 50px; padding-top: 20px; border-top: 1px solid #ccc; color: #666;">
+        <p><strong>PDF Reader Backend API v1.0</strong></p>
+        <p>Yaratilgan sana: 2025-06-12</p>
+    </div>
+</body>
+</html>
