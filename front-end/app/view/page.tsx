@@ -57,10 +57,67 @@ export default function PublicViewer() {
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false)
   const [isMobileOutlineOpen, setIsMobileOutlineOpen] = useState<boolean>(false)
   const [error, setError] = useState<string>("")
+  const [currentRenderTask, setCurrentRenderTask] = useState<any>(null)
+  const [publishedData, setPublishedData] = useState<any>(null)
+  const [loadingProgress, setLoadingProgress] = useState<number>(0)
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const viewerRef = useRef<HTMLDivElement>(null)
   const { toast } = useToast()
+
+  // Fetch publication data
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('/api/publications/latest')
+        if (!response.ok) throw new Error('Failed to fetch publication data')
+        const data = await response.json()
+        setPublishedData(data)
+      } catch (error) {
+        console.error('Error fetching publication data:', error)
+        toast({
+          title: "Xatolik!",
+          description: "Ma'lumotlarni yuklashda xatolik yuz berdi",
+          variant: "destructive",
+        })
+      }
+    }
+    fetchData()
+  }, [])
+
+  // Handle language change
+  const handleLanguageChange = async (newLanguage: string) => {
+    if (!publishedData || newLanguage === currentLanguage) return
+
+    setLoading(true)
+    setCurrentLanguage(newLanguage)
+
+    try {
+      // Find the PDF file for the selected language
+      const pdfFile = publishedData.pdfFiles.find((file: any) => 
+        file.name.toLowerCase().includes(newLanguage.toLowerCase())
+      )
+
+      if (!pdfFile) {
+        throw new Error(`PDF file not found for language: ${newLanguage}`)
+      }
+
+      // Load the new PDF
+      await loadPDFFromData(pdfFile)
+      
+      // Reset to first page
+      setPageNumber(1)
+    } catch (error) {
+      console.error('Error switching language:', error)
+      toast({
+        title: "Xatolik!",
+        description: "Tilni almashtirishda xatolik yuz berdi",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // PDF.js ni dinamik ravishda yuklash
   useEffect(() => {
@@ -123,26 +180,33 @@ export default function PublicViewer() {
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange)
   }, [])
 
-  const loadPDFFromData = async (pdfData: PDFData) => {
+  const loadPDFFromData = async (pdfData: any) => {
     setLoading(true)
     setPageNumber(1)
+    setLoadingProgress(0)
 
     try {
-      // Base64 dan File obyektini yaratish
-      const byteCharacters = atob(pdfData.data.split(",")[1])
-      const byteNumbers = new Array(byteCharacters.length)
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i)
+      setLoadingProgress(25)
+      
+      // Fetch the PDF file from the backend
+      const response = await fetch(`/api/publications/${publishedData.id}/pdf-files/${pdfData.id}`)
+      if (!response.ok) {
+        throw new Error(`Failed to load PDF: ${response.statusText}`)
       }
-      const byteArray = new Uint8Array(byteNumbers)
-      const file = new File([byteArray], pdfData.name, { type: pdfData.type })
+      
+      const blob = await response.blob()
+      setLoadingProgress(50)
+      
+      const file = new File([blob], pdfData.name, { type: pdfData.type })
       setCurrentFile(file)
+      setLoadingProgress(75)
 
       // PDF.js bilan yuklash
       // @ts-ignore
-      const pdf = await window.pdfjsLib.getDocument(byteArray).promise
+      const pdf = await window.pdfjsLib.getDocument(URL.createObjectURL(blob)).promise
       setPdfDoc(pdf)
       setNumPages(pdf.numPages)
+      setLoadingProgress(100)
       setLoading(false)
     } catch (error) {
       console.error("PDF yuklashda xatolik:", error)
@@ -155,25 +219,60 @@ export default function PublicViewer() {
     if (!pdfDoc || !canvasRef.current) return
 
     try {
+      // Cancel any ongoing render task
+      if (currentRenderTask) {
+        currentRenderTask.cancel()
+      }
+
       const page = await pdfDoc.getPage(pageNum)
-      const viewport = page.getViewport({ scale })
+      const viewport = page.getViewport({ 
+        scale,
+        rotation: 0,
+        dontFlip: false
+      })
 
       const canvas = canvasRef.current
       const context = canvas.getContext("2d")
 
+      // Set canvas dimensions
       canvas.height = viewport.height
       canvas.width = viewport.width
+
+      // Clear the canvas
+      context?.clearRect(0, 0, canvas.width, canvas.height)
 
       const renderContext = {
         canvasContext: context,
         viewport: viewport,
+        intent: 'display'
       }
 
-      await page.render(renderContext).promise
-    } catch (error) {
+      // Create new render task and store it
+      const renderTask = page.render(renderContext)
+      setCurrentRenderTask(renderTask)
+
+      // Wait for render to complete
+      await renderTask.promise
+      
+      // Clear the render task reference after completion
+      setCurrentRenderTask(null)
+    } catch (error: any) {
+      // Ignore cancellation errors
+      if (error?.name === 'RenderingCancelled') {
+        return
+      }
       console.error("Sahifani render qilishda xatolik:", error)
     }
   }
+
+  // Cleanup render task on unmount
+  useEffect(() => {
+    return () => {
+      if (currentRenderTask) {
+        currentRenderTask.cancel()
+      }
+    }
+  }, [currentRenderTask])
 
   useEffect(() => {
     if (pdfDoc && pageNumber) {
