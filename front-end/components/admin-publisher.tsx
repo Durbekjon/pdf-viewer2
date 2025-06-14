@@ -100,7 +100,12 @@ export function AdminPublisher({ pdfFiles, customOutlines, translations }: Admin
 
         for (let i = 0; i < arrayBuffer.byteLength; i += chunkSize) {
           const chunk = arrayBuffer.slice(i, i + chunkSize)
-          const base64Chunk = btoa(String.fromCharCode(...new Uint8Array(chunk)))
+          const uint8Array = new Uint8Array(chunk)
+          let binary = ''
+          for (let j = 0; j < uint8Array.length; j++) {
+            binary += String.fromCharCode(uint8Array[j])
+          }
+          const base64Chunk = btoa(binary)
           chunks.push(base64Chunk)
         }
 
