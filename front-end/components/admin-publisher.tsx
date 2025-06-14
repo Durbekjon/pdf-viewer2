@@ -26,11 +26,6 @@ interface AdminPublisherProps {
   translations: any
 }
 
-// Hajm cheklovlari (MB da)
-const MAX_SINGLE_FILE_SIZE = 50 // 50MB
-const MAX_TOTAL_SIZE = 100 // 100MB
-const RECOMMENDED_SIZE = 20 // 20MB
-
 export function AdminPublisher({ pdfFiles, customOutlines, translations }: AdminPublisherProps) {
   const [open, setOpen] = useState(false)
   const [publicUrl, setPublicUrl] = useState("")
@@ -119,19 +114,6 @@ export function AdminPublisher({ pdfFiles, customOutlines, translations }: Admin
   const generatePublicLink = async () => {
     if (!isClient) return
 
-    // Hajmni tekshirish
-    const totalSize = getTotalSize()
-    const totalSizeMB = Number.parseFloat(totalSize)
-
-    if (totalSizeMB > MAX_TOTAL_SIZE) {
-      toast({
-        title: "Hajm juda katta!",
-        description: `Jami hajm ${totalSizeMB}MB. Maksimal ruxsat etilgan hajm ${MAX_TOTAL_SIZE}MB.`,
-        variant: "destructive",
-      })
-      return
-    }
-
     // Sarlavhani tekshirish
     if (!publicationTitle.trim()) {
       toast({
@@ -140,21 +122,6 @@ export function AdminPublisher({ pdfFiles, customOutlines, translations }: Admin
         variant: "destructive",
       })
       return
-    }
-
-    // Har bir faylning hajmini tekshirish
-    for (const [lang, file] of Object.entries(pdfFiles)) {
-      if (file) {
-        const fileSizeMB = file.size / 1024 / 1024
-        if (fileSizeMB > MAX_SINGLE_FILE_SIZE) {
-          toast({
-            title: "Fayl juda katta!",
-            description: `${lang} tili uchun fayl ${fileSizeMB.toFixed(1)}MB. Maksimal ruxsat etilgan hajm ${MAX_SINGLE_FILE_SIZE}MB.`,
-            variant: "destructive",
-          })
-          return
-        }
-      }
     }
 
     setIsGenerating(true)
@@ -349,17 +316,10 @@ export function AdminPublisher({ pdfFiles, customOutlines, translations }: Admin
   }
 
   const getSizeWarning = () => {
-    const totalSizeMB = Number.parseFloat(getTotalSize())
-
-    if (totalSizeMB > MAX_TOTAL_SIZE) {
-      return { level: "error", message: `Jami hajm ${totalSizeMB}MB juda katta! Maksimal: ${MAX_TOTAL_SIZE}MB` }
-    } else if (totalSizeMB > RECOMMENDED_SIZE) {
-      return { level: "warning", message: `Jami hajm ${totalSizeMB}MB. Tavsiya etilgan: ${RECOMMENDED_SIZE}MB dan kam` }
-    }
-    return null
+    return null as { level: "error" | "warning"; message: string } | null
   }
 
-  const canPublish = getUploadedCount() > 0 && Number.parseFloat(getTotalSize()) <= MAX_TOTAL_SIZE
+  const canPublish = getUploadedCount() > 0
 
   // Server-side rendering paytida bo'sh komponent qaytarish
   if (!isClient) {
@@ -435,16 +395,7 @@ export function AdminPublisher({ pdfFiles, customOutlines, translations }: Admin
                   <p className="text-xs text-muted-foreground">PDF fayllar</p>
                 </div>
                 <div>
-                  <Badge
-                    variant={
-                      Number.parseFloat(getTotalSize()) > MAX_TOTAL_SIZE
-                        ? "destructive"
-                        : Number.parseFloat(getTotalSize()) > RECOMMENDED_SIZE
-                          ? "outline"
-                          : "secondary"
-                    }
-                    className="mb-2"
-                  >
+                  <Badge variant="secondary" className="mb-2">
                     {getTotalSize()}MB
                   </Badge>
                   <p className="text-xs text-muted-foreground">Jami hajm</p>
@@ -471,12 +422,11 @@ export function AdminPublisher({ pdfFiles, customOutlines, translations }: Admin
                 <div className="flex gap-2">
                   {Object.entries(pdfFiles).map(([lang, file]) => {
                     const fileSizeMB = file ? (file.size / 1024 / 1024).toFixed(1) : "0"
-                    const isLarge = file && file.size / 1024 / 1024 > MAX_SINGLE_FILE_SIZE
 
                     return (
                       <div key={lang} className="flex flex-col items-center gap-1">
                         <Badge
-                          variant={file ? (isLarge ? "destructive" : "default") : "outline"}
+                          variant={file ? "default" : "outline"}
                           className="flex items-center gap-1"
                         >
                           {lang === "uz" && "🇺🇿 O'zbek"}
@@ -485,7 +435,7 @@ export function AdminPublisher({ pdfFiles, customOutlines, translations }: Admin
                           {file && <Check className="w-3 h-3" />}
                         </Badge>
                         {file && (
-                          <span className={`text-xs ${isLarge ? "text-destructive" : "text-muted-foreground"}`}>
+                          <span className="text-xs text-muted-foreground">
                             {fileSizeMB}MB
                           </span>
                         )}
@@ -496,11 +446,11 @@ export function AdminPublisher({ pdfFiles, customOutlines, translations }: Admin
               </div>
 
               {!canPublish && (
-                <Alert variant={Number.parseFloat(getTotalSize()) > MAX_TOTAL_SIZE ? "destructive" : "default"}>
+                <Alert variant="default">
                   <AlertDescription>
                     {getUploadedCount() === 0
                       ? "Nashr qilish uchun kamida bitta PDF fayl yuklang."
-                      : `Jami hajm ${getTotalSize()}MB juda katta. Maksimal ruxsat etilgan hajm ${MAX_TOTAL_SIZE}MB.`}
+                      : ""}
                   </AlertDescription>
                 </Alert>
               )}

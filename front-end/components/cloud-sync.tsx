@@ -108,30 +108,11 @@ export function CloudSync({ language, pdfFiles, customOutlines, onImportData, tr
     }
   }
 
-  const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
-  const MAX_TOTAL_SIZE = 10 * 1024 * 1024 // 10MB total
-
   const checkFileSizes = () => {
-    const oversizedFiles = []
-    let totalSize = 0
-
-    for (const [lang, file] of Object.entries(pdfFiles)) {
-      if (file && selectedFiles[lang as Language]) {
-        totalSize += file.size
-        if (file.size > MAX_FILE_SIZE) {
-          oversizedFiles.push({
-            lang,
-            name: file.name,
-            size: (file.size / 1024 / 1024).toFixed(1),
-          })
-        }
-      }
-    }
-
     return {
-      oversizedFiles,
-      totalSize,
-      exceedsTotal: totalSize > MAX_TOTAL_SIZE,
+      oversizedFiles: [],
+      totalSize: 0,
+      exceedsTotal: false,
     }
   }
 
